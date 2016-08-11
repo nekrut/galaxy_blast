@@ -80,44 +80,18 @@ before_install:
 # Configuring tools within Galaxy
 # ===============================
 #
-# We setup a minimal tool_conf.xml and/or tool_conf.xml.sample file to
-# get Galaxy to just test our tools, rather than via a (local) Galaxy
-# Tool Shed.
+# In theory planemo will take care of all the test files etc, so all
+# that I am doing extra is the manual installation of the datatypes.
 #
-# TODO - GALAXY_TEST_TOOL_CONF environment variable rather than symlink?
-#
-# We setup our tools under the Galaxy tool folder by using symlinks.
-# TODO - Restructure this to auto-update in future when add folders?
-#
-# We setup our datatypes by adding blast.py to the Galaxy library, and
-# adding the insert into lib/galaxy/datatypes/registry.py, and replacing
-# the datatypes_conf.xml file.
-#
-# We setup our sample data in the Galaxy test-data folder by copying them
-# (using symlinks might be faster?)
-#
-# We setup out sample *.loc files in the Galaxy tool-data folder by copying
-# them (using symlinks might be faster?)
-#
-# Galaxy now provides a startup script to setup all the sample files,
-# and fetch egg/wheel Python dependecies etc.
-
+# We setup our datatypes by adding blast.py to the Galaxy library folder,
+# and replacing the datatypes_conf.xml file.
 
 install:
  - cd ${TRAVIS_BUILD_DIR}/galaxy-${GALAXY_BRANCH}
  - export GALAXY_TEST_UPLOAD_ASYNC=false
  - export GALAXY_TEST_DB_TEMPLATE=https://github.com/jmchilton/galaxy-downloads/raw/master/db_gx_rev_0127.sqlite
- - rm -f tool_conf.xml
- - ln -s ${TRAVIS_BUILD_DIR}/.travis.tool_conf.xml tool_conf.xml
- - rm -f config/tool_conf.xml.sample
- - ln -s ${TRAVIS_BUILD_DIR}/.travis.tool_conf.xml config/tool_conf.xml.sample
- - rm -f config/shed_tool_data_table_conf.xml
- - ln -s ${TRAVIS_BUILD_DIR}/.travis.tool_data_table_conf.xml config/shed_tool_data_table_conf.xml
- - for i in $( ls ${TRAVIS_BUILD_DIR}/tools/ ); do ln -s ${TRAVIS_BUILD_DIR}/tools/$i/ tools/$i ; done
  - ln -s ${TRAVIS_BUILD_DIR}/datatypes/blast_datatypes/blast.py lib/galaxy/datatypes/blast.py
  - ln -s ${TRAVIS_BUILD_DIR}/.travis.datatypes_conf.xml datatypes_conf.xml
- - cp ${TRAVIS_BUILD_DIR}/test-data/* test-data/
- - cp ${TRAVIS_BUILD_DIR}/tool-data/* tool-data/
 #Older Galaxy versions using eggs (like 15.10) will ignore the extra arguments:
  - bash scripts/common_startup.sh --no-create-venv --dev-wheels
 
@@ -125,14 +99,11 @@ install:
 # Testing tools in Galaxy
 # =======================
 #
-# Having setup our Galaxy with a minimal tool_conf.xml / tool_conf.xml.sample
-# originally called run_functional_tests.sh to run just our tests - but now
-# just using planemo.
+# Having setup our Galaxy with BLAST data types, call planemo test
 
 script:
  - cd ${TRAVIS_BUILD_DIR}
  - planemo test --galaxy_root ${TRAVIS_BUILD_DIR}/galaxy-${GALAXY_BRANCH} --skip_venv tools/
 
-#The email defaults are too talkative while we're getting Travis working nicely.
 notifications:
   email: false
